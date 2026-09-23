@@ -131,7 +131,10 @@
 
     <!-- Navigation Tabs -->
     <div class="flex border-b border-[var(--border)] text-sm gap-6 overflow-x-auto custom-scroll">
-      <button onclick="switchTab('tab-functional')" id="btn-tab-functional" class="tab-btn active pb-3 text-[var(--muted-foreground)] hover:text-white transition-colors whitespace-nowrap">
+      <button onclick="switchTab('tab-all')" id="btn-tab-all" class="tab-btn active pb-3 text-[var(--muted-foreground)] hover:text-white transition-colors whitespace-nowrap">
+        Complete Overview (All-in-One)
+      </button>
+      <button onclick="switchTab('tab-functional')" id="btn-tab-functional" class="tab-btn pb-3 text-[var(--muted-foreground)] hover:text-white transition-colors whitespace-nowrap">
         Functional &amp; DeepEval Guardrails (13)
       </button>
       <button onclick="switchTab('tab-performance')" id="btn-tab-performance" class="tab-btn pb-3 text-[var(--muted-foreground)] hover:text-white transition-colors whitespace-nowrap">
@@ -270,7 +273,7 @@
     </div>
 
     <!-- TAB 2: Performance & Load Testing Graphs -->
-    <div id="tab-performance" class="space-y-6 hidden">
+    <div id="tab-performance" class="space-y-6">
       <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
 
         <!-- Latency Distribution Graph (SVG Visualizer) -->
@@ -377,7 +380,7 @@
     </div>
 
     <!-- TAB 3: Component Health Grid -->
-    <div id="tab-health" class="space-y-6 hidden">
+    <div id="tab-health" class="space-y-6">
       <div class="bg-[var(--card)] border border-[var(--border)] rounded-xl p-5 shadow-sm">
         <h2 class="text-base font-semibold text-[var(--foreground)] mb-4">Multi-Tier Architecture Health Matrix</h2>
 
@@ -474,7 +477,7 @@
     </div>
 
     <!-- TAB 4: Alerts & Incidents -->
-    <div id="tab-alerts" class="space-y-6 hidden">
+    <div id="tab-alerts" class="space-y-6">
       <div class="bg-[var(--card)] border border-[var(--border)] rounded-xl p-5 shadow-sm space-y-4">
         <div class="flex justify-between items-center">
           <h2 class="text-base font-semibold text-[var(--foreground)]">Real-Time Alert Rules Engine</h2>
@@ -516,11 +519,17 @@
 
   <script>
     function switchTab(tabId) {
-      document.querySelectorAll('[id^="tab-"]').forEach(el => el.classList.add('hidden'));
       document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+      const activeBtn = document.getElementById('btn-' + tabId);
+      if (activeBtn) activeBtn.classList.add('active');
       
-      document.getElementById(tabId).classList.remove('hidden');
-      document.getElementById('btn-' + tabId).classList.add('active');
+      if (tabId === 'tab-all') {
+        document.querySelectorAll('[id^="tab-"]').forEach(el => el.classList.remove('hidden'));
+      } else {
+        document.querySelectorAll('[id^="tab-"]').forEach(el => el.classList.add('hidden'));
+        const target = document.getElementById(tabId);
+        if (target) target.classList.remove('hidden');
+      }
     }
 
     function addTrace(msg, colorClass) {

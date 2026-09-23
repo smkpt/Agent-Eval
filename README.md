@@ -8,11 +8,21 @@
 
 A production-grade Proof-of-Concept demonstrating an enterprise **Healthcare AI Multi-Agent Architecture** built with the **Agent Development Kit (ADK)** and **Model Context Protocol (MCP)** paradigms, reinforced by automated **DeepEval Guardrails**, real-time **Dynatrace/Prometheus/Grafana Operations Visibility**, and full performance testing suites using **Grafana k6**, **Locust**, and **Apache JMeter**.
 
+<div align="center">
+
+[![Agent-Eval Operations & Agentic QA Command Center](dashboard_full_view.png)](dashboards/healthcare_ops_qa_dashboard.html)
+
+**[🖥️ Launch Interactive HTML Dashboard](dashboards/healthcare_ops_qa_dashboard.html)** • **[📊 View Full High-Res Architecture Overview](dashboard_full_view.png)**
+
+</div>
+
 ---
 
 ## Operations Visibility & Performance Testing Stack
 
-<img width="1871" height="769" alt="Operations Visibility Dashboard" src="https://github.com/user-attachments/assets/a24260d4-53b6-409b-82a3-07fd05dae493" />
+The unified operations and agentic QA command center monitors functional test gates, non-functional latency distributions (p50/p95/p99), multi-tier data store health, and real-time alert rules:
+
+[![Unified Healthcare Operations & Agentic QA Dashboard](dashboard_full_view.png)](dashboards/healthcare_ops_qa_dashboard.html)
 
 
 ```mermaid
