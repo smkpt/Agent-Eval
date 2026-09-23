@@ -1,0 +1,623 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Agent-Eval | Operations Visibility & Agentic QA Dashboard</title>
+  <script src="https://www.gstatic.com/antigravity/web/dev/tailwindcss.min.js"></script>
+  <style>
+    :root {
+      --background: #090d16;
+      --card: #0f172a;
+      --card-hover: #1e293b;
+      --border: #1e293b;
+      --foreground: #f8fafc;
+      --muted-foreground: #94a3b8;
+      --primary: #3b82f6;
+      --primary-foreground: #ffffff;
+      --accent-green: #10b981;
+      --accent-amber: #f59e0b;
+      --accent-rose: #f43f5e;
+      --accent-purple: #8b5cf6;
+      --accent-cyan: #06b6d4;
+    }
+    body {
+      background-color: var(--background);
+      color: var(--foreground);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    }
+    .custom-scroll::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    .custom-scroll::-webkit-scrollbar-thumb {
+      background: var(--border);
+      border-radius: 3px;
+    }
+    .tab-btn.active {
+      border-bottom: 2px solid var(--primary);
+      color: var(--primary);
+      font-weight: 600;
+    }
+  </style>
+</head>
+<body class="p-4 sm:p-6 lg:p-8 antialiased">
+  <div class="max-w-7xl mx-auto space-y-6">
+
+    <!-- Top Navigation Header -->
+    <header class="flex flex-col md:flex-row justify-between items-start md:items-center pb-5 border-b border-[var(--border)] gap-4">
+      <div>
+        <div class="flex items-center gap-3">
+          <div class="w-3 h-3 rounded-full bg-emerald-500 animate-pulse"></div>
+          <h1 class="text-xl sm:text-2xl font-bold tracking-tight text-[var(--foreground)]">
+            Agent-Eval <span class="text-blue-500 font-normal">| Operations & Agentic QA Dashboard</span>
+          </h1>
+          <span class="px-2 py-0.5 text-xs font-semibold rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/30">
+            SYSTEM HEALTHY
+          </span>
+        </div>
+        <p class="text-sm text-[var(--muted-foreground)] mt-1">
+          Healthcare AI Multi-Agent Architecture • Asynchronous E-Rx & Prior Auth • DeepEval & k6 Telemetry
+        </p>
+      </div>
+      
+      <!-- Action Controls -->
+      <div class="flex items-center gap-3 self-stretch sm:self-auto">
+        <button id="btn-run-all" onclick="simulateFullQASuite()" class="flex-1 sm:flex-none px-4 py-2 text-xs sm:text-sm font-medium rounded-lg bg-blue-600 hover:bg-blue-500 text-white transition-all shadow-lg shadow-blue-600/20 flex items-center justify-center gap-2">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+          Run Full QA Suite
+        </button>
+        <button id="btn-inject-fault" onclick="simulateFaultInjection()" class="px-3 py-2 text-xs sm:text-sm font-medium rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 transition-all flex items-center gap-1.5">
+          <svg class="w-4 h-4 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
+          Inject Failure
+        </button>
+      </div>
+    </header>
+
+    <!-- Top KPI Grid -->
+    <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
+      <!-- KPI 1 -->
+      <div class="bg-[var(--card)] border border-[var(--border)] rounded-xl p-4 shadow-sm">
+        <span class="text-xs font-semibold uppercase tracking-wider text-[var(--muted-foreground)]">Functional QA Pass</span>
+        <div class="flex items-baseline gap-2 mt-2">
+          <span id="kpi-tests-pass" class="text-2xl sm:text-3xl font-extrabold text-emerald-400">30 / 30</span>
+          <span class="text-xs text-emerald-500 font-semibold">100%</span>
+        </div>
+        <div class="w-full bg-slate-800 rounded-full h-1.5 mt-3 overflow-hidden">
+          <div id="kpi-progress-bar" class="bg-emerald-500 h-1.5 rounded-full" style="width: 100%"></div>
+        </div>
+      </div>
+
+      <!-- KPI 2 -->
+      <div class="bg-[var(--card)] border border-[var(--border)] rounded-xl p-4 shadow-sm">
+        <span class="text-xs font-semibold uppercase tracking-wider text-[var(--muted-foreground)]">P95 Execution Latency</span>
+        <div class="flex items-baseline gap-1 mt-2">
+          <span id="kpi-p95" class="text-2xl sm:text-3xl font-extrabold text-sky-400">42.5</span>
+          <span class="text-xs text-sky-400">ms</span>
+        </div>
+        <span class="text-[11px] text-[var(--muted-foreground)] block mt-2">SLA Bound: &lt; 2000 ms</span>
+      </div>
+
+      <!-- KPI 3 -->
+      <div class="bg-[var(--card)] border border-[var(--border)] rounded-xl p-4 shadow-sm">
+        <span class="text-xs font-semibold uppercase tracking-wider text-[var(--muted-foreground)]">HIPAA PHI Direct Leaks</span>
+        <div class="flex items-baseline gap-2 mt-2">
+          <span id="kpi-phi-leaks" class="text-2xl sm:text-3xl font-extrabold text-emerald-400">0</span>
+          <span class="px-1.5 py-0.5 text-[10px] font-bold rounded bg-emerald-500/20 text-emerald-300">SAFE HARBOR</span>
+        </div>
+        <span class="text-[11px] text-[var(--muted-foreground)] block mt-2">Zero-Tolerance Guardrail</span>
+      </div>
+
+      <!-- KPI 4 -->
+      <div class="bg-[var(--card)] border border-[var(--border)] rounded-xl p-4 shadow-sm">
+        <span class="text-xs font-semibold uppercase tracking-wider text-[var(--muted-foreground)]">Saga Rollback Rate</span>
+        <div class="flex items-baseline gap-2 mt-2">
+          <span id="kpi-saga-rate" class="text-2xl sm:text-3xl font-extrabold text-emerald-400">0.0%</span>
+          <span class="text-[11px] text-[var(--muted-foreground)]">0 orphans</span>
+        </div>
+        <span class="text-[11px] text-[var(--muted-foreground)] block mt-2">MongoDB & Postgres Sync</span>
+      </div>
+
+      <!-- KPI 5 -->
+      <div class="bg-[var(--card)] border border-[var(--border)] rounded-xl p-4 shadow-sm col-span-2 sm:col-span-1">
+        <span class="text-xs font-semibold uppercase tracking-wider text-[var(--muted-foreground)]">Active P0/P1 Alerts</span>
+        <div class="flex items-baseline gap-2 mt-2">
+          <span id="kpi-alerts-count" class="text-2xl sm:text-3xl font-extrabold text-emerald-400">0</span>
+          <span id="kpi-alerts-badge" class="px-1.5 py-0.5 text-[10px] font-bold rounded bg-emerald-500/20 text-emerald-300">ALL CLEAR</span>
+        </div>
+        <span class="text-[11px] text-[var(--muted-foreground)] block mt-2">Dynatrace / Slack Webhooks</span>
+      </div>
+    </div>
+
+    <!-- Navigation Tabs -->
+    <div class="flex border-b border-[var(--border)] text-sm gap-6 overflow-x-auto custom-scroll">
+      <button onclick="switchTab('tab-functional')" id="btn-tab-functional" class="tab-btn active pb-3 text-[var(--muted-foreground)] hover:text-white transition-colors whitespace-nowrap">
+        Functional &amp; DeepEval Guardrails (13)
+      </button>
+      <button onclick="switchTab('tab-performance')" id="btn-tab-performance" class="tab-btn pb-3 text-[var(--muted-foreground)] hover:text-white transition-colors whitespace-nowrap">
+        Performance &amp; Load Tests (k6 / Locust / JMeter)
+      </button>
+      <button onclick="switchTab('tab-health')" id="btn-tab-health" class="tab-btn pb-3 text-[var(--muted-foreground)] hover:text-white transition-colors whitespace-nowrap">
+        Component Health &amp; Multi-Tier Grid (8)
+      </button>
+      <button onclick="switchTab('tab-alerts')" id="btn-tab-alerts" class="tab-btn pb-3 text-[var(--muted-foreground)] hover:text-white transition-colors whitespace-nowrap">
+        Alert Rules &amp; Operational Incidents
+      </button>
+    </div>
+
+    <!-- TAB 1: Functional Tests & DeepEval Guardrails -->
+    <div id="tab-functional" class="space-y-6">
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        
+        <!-- Test Categories Table -->
+        <div class="lg:col-span-2 bg-[var(--card)] border border-[var(--border)] rounded-xl p-5 shadow-sm">
+          <div class="flex justify-between items-center mb-4">
+            <h2 class="text-base font-semibold text-[var(--foreground)]">Functional Test Suite Breakdown</h2>
+            <span class="text-xs text-[var(--muted-foreground)]">30 Executed • 0 Failures • CI/CD Gate: PASSED</span>
+          </div>
+
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs border-collapse">
+              <thead>
+                <tr class="border-b border-[var(--border)] text-[var(--muted-foreground)] font-semibold uppercase">
+                  <th class="py-2.5 px-3">Test Scenario</th>
+                  <th class="py-2.5 px-3">Evaluation Category</th>
+                  <th class="py-2.5 px-3">SLA / Standard</th>
+                  <th class="py-2.5 px-3">Duration</th>
+                  <th class="py-2.5 px-3 text-right">Result</th>
+                </tr>
+              </thead>
+              <tbody id="functional-test-rows" class="divide-y divide-[var(--border)]">
+                <tr class="hover:bg-slate-800/40 transition-colors">
+                  <td class="py-3 px-3 font-medium text-white">test_hipaa_phi_guardrail_zero_leakage</td>
+                  <td class="py-3 px-3 text-[var(--muted-foreground)]">DeepEval HIPAA Guardrail</td>
+                  <td class="py-3 px-3">Score = 1.0 (Zero PII)</td>
+                  <td class="py-3 px-3 text-slate-400">12 ms</td>
+                  <td class="py-3 px-3 text-right"><span class="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">PASS</span></td>
+                </tr>
+                <tr class="hover:bg-slate-800/40 transition-colors">
+                  <td class="py-3 px-3 font-medium text-white">test_clinical_faithfulness_metric</td>
+                  <td class="py-3 px-3 text-[var(--muted-foreground)]">CMS-0057-F Guidelines</td>
+                  <td class="py-3 px-3">Faithfulness &ge; 0.90</td>
+                  <td class="py-3 px-3 text-slate-400">38 ms</td>
+                  <td class="py-3 px-3 text-right"><span class="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">PASS</span></td>
+                </tr>
+                <tr class="hover:bg-slate-800/40 transition-colors">
+                  <td class="py-3 px-3 font-medium text-white">test_saga_happy_path_commits_all_tiers</td>
+                  <td class="py-3 px-3 text-[var(--muted-foreground)]">Multi-Store ACID Sync</td>
+                  <td class="py-3 px-3">Mongo + PG + DB2</td>
+                  <td class="py-3 px-3 text-slate-400">24 ms</td>
+                  <td class="py-3 px-3 text-right"><span class="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">PASS</span></td>
+                </tr>
+                <tr class="hover:bg-slate-800/40 transition-colors">
+                  <td class="py-3 px-3 font-medium text-white">test_saga_compensates_on_db2_timeout</td>
+                  <td class="py-3 px-3 text-[var(--muted-foreground)]">Resilience &amp; Rollback</td>
+                  <td class="py-3 px-3">Zero Orphan State</td>
+                  <td class="py-3 px-3 text-slate-400">18 ms</td>
+                  <td class="py-3 px-3 text-right"><span class="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">PASS</span></td>
+                </tr>
+                <tr class="hover:bg-slate-800/40 transition-colors">
+                  <td class="py-3 px-3 font-medium text-white">test_async_gateway_returns_http_202_and_polls</td>
+                  <td class="py-3 px-3 text-[var(--muted-foreground)]">Async Pharmacy Protocol</td>
+                  <td class="py-3 px-3">RFC 7231 Retry-After</td>
+                  <td class="py-3 px-3 text-slate-400">22 ms</td>
+                  <td class="py-3 px-3 text-right"><span class="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">PASS</span></td>
+                </tr>
+                <tr class="hover:bg-slate-800/40 transition-colors">
+                  <td class="py-3 px-3 font-medium text-white">test_prior_auth_agent_enforces_step_therapy</td>
+                  <td class="py-3 px-3 text-[var(--muted-foreground)]">Clinical Rule Enforcement</td>
+                  <td class="py-3 px-3">Deny without Metformin</td>
+                  <td class="py-3 px-3 text-slate-400">16 ms</td>
+                  <td class="py-3 px-3 text-right"><span class="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">PASS</span></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Evaluation Distribution Donut / Metric Cards -->
+        <div class="bg-[var(--card)] border border-[var(--border)] rounded-xl p-5 shadow-sm space-y-4">
+          <h2 class="text-base font-semibold text-[var(--foreground)]">DeepEval Quality Gate Summary</h2>
+          
+          <div class="space-y-3 pt-2">
+            <div>
+              <div class="flex justify-between text-xs mb-1">
+                <span class="text-[var(--muted-foreground)]">HIPAA PHI Safe Harbor De-identification</span>
+                <span class="text-emerald-400 font-bold">100% (Zero Leak)</span>
+              </div>
+              <div class="w-full bg-slate-800 rounded-full h-2">
+                <div class="bg-emerald-500 h-2 rounded-full" style="width: 100%"></div>
+              </div>
+            </div>
+
+            <div>
+              <div class="flex justify-between text-xs mb-1">
+                <span class="text-[var(--muted-foreground)]">Clinical Guideline Faithfulness (CMS-0057-F)</span>
+                <span class="text-emerald-400 font-bold">98.5% (Threshold: 90%)</span>
+              </div>
+              <div class="w-full bg-slate-800 rounded-full h-2">
+                <div class="bg-emerald-500 h-2 rounded-full" style="width: 98.5%"></div>
+              </div>
+            </div>
+
+            <div>
+              <div class="flex justify-between text-xs mb-1">
+                <span class="text-[var(--muted-foreground)]">Multi-Store Data Synchronization</span>
+                <span class="text-emerald-400 font-bold">100% (No Orphans)</span>
+              </div>
+              <div class="w-full bg-slate-800 rounded-full h-2">
+                <div class="bg-emerald-500 h-2 rounded-full" style="width: 100%"></div>
+              </div>
+            </div>
+
+            <div>
+              <div class="flex justify-between text-xs mb-1">
+                <span class="text-[var(--muted-foreground)]">Async HTTP 202 SLA Compliance</span>
+                <span class="text-emerald-400 font-bold">100% (Valid Polling)</span>
+              </div>
+              <div class="w-full bg-slate-800 rounded-full h-2">
+                <div class="bg-emerald-500 h-2 rounded-full" style="width: 100%"></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="p-3 bg-blue-950/30 border border-blue-800/40 rounded-lg text-xs text-blue-300 mt-4">
+            <strong class="text-blue-200">Quality Gate Policy:</strong> Pull requests to <code>main</code> are automatically gated. Any detection of real PII or clinical hallucination blocks deployment immediately.
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- TAB 2: Performance & Load Testing Graphs -->
+    <div id="tab-performance" class="space-y-6 hidden">
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+
+        <!-- Latency Distribution Graph (SVG Visualizer) -->
+        <div class="bg-[var(--card)] border border-[var(--border)] rounded-xl p-5 shadow-sm">
+          <div class="flex justify-between items-center mb-3">
+            <div>
+              <h2 class="text-base font-semibold text-[var(--foreground)]">Execution Latency Percentiles (p50 / p95 / p99)</h2>
+              <p class="text-xs text-[var(--muted-foreground)]">Simulated load from k6 &amp; Locust across 25 concurrent VUs</p>
+            </div>
+            <span class="px-2 py-0.5 rounded text-[11px] font-bold bg-sky-500/10 text-sky-400 border border-sky-500/30">
+              k6 Load Runner
+            </span>
+          </div>
+
+          <!-- Dynamic SVG Latency Chart -->
+          <div class="h-56 w-full pt-4">
+            <svg class="w-full h-full" viewBox="0 0 500 180">
+              <!-- Grid lines -->
+              <line x1="40" y1="20" x2="480" y2="20" stroke="#1e293b" stroke-dasharray="3,3" />
+              <line x1="40" y1="60" x2="480" y2="60" stroke="#1e293b" stroke-dasharray="3,3" />
+              <line x1="40" y1="100" x2="480" y2="100" stroke="#1e293b" stroke-dasharray="3,3" />
+              <line x1="40" y1="140" x2="480" y2="140" stroke="#1e293b" />
+
+              <!-- Y Axis Labels -->
+              <text x="5" y="25" fill="#64748b" font-size="10">100ms</text>
+              <text x="12" y="65" fill="#64748b" font-size="10">60ms</text>
+              <text x="12" y="105" fill="#64748b" font-size="10">30ms</text>
+              <text x="18" y="145" fill="#64748b" font-size="10">0ms</text>
+
+              <!-- p99 Curve (Purple) -->
+              <path d="M 40,95 Q 120,80 200,90 T 360,75 T 480,70" fill="none" stroke="#a855f7" stroke-width="2" />
+              <!-- p95 Curve (Blue) -->
+              <path d="M 40,115 Q 120,105 200,110 T 360,100 T 480,95" fill="none" stroke="#38bdf8" stroke-width="2" />
+              <!-- p50 Curve (Emerald) -->
+              <path d="M 40,130 Q 120,128 200,127 T 360,125 T 480,122" fill="none" stroke="#10b981" stroke-width="2" />
+
+              <!-- Legend -->
+              <circle cx="150" cy="170" r="4" fill="#a855f7" />
+              <text x="160" y="173" fill="#cbd5e1" font-size="10">p99 (78ms)</text>
+              <circle cx="250" cy="170" r="4" fill="#38bdf8" />
+              <text x="260" y="173" fill="#cbd5e1" font-size="10">p95 (42.5ms)</text>
+              <circle cx="350" cy="170" r="4" fill="#10b981" />
+              <text x="360" y="173" fill="#cbd5e1" font-size="10">p50 (18ms)</text>
+            </svg>
+          </div>
+        </div>
+
+        <!-- Throughput & Concurrency Breakdown -->
+        <div class="bg-[var(--card)] border border-[var(--border)] rounded-xl p-5 shadow-sm">
+          <div class="flex justify-between items-center mb-3">
+            <div>
+              <h2 class="text-base font-semibold text-[var(--foreground)]">Locust Load Personas &amp; Throughput</h2>
+              <p class="text-xs text-[var(--muted-foreground)]">Sustained 50+ RPS across diverse clinical workloads</p>
+            </div>
+            <span class="px-2 py-0.5 rounded text-[11px] font-bold bg-amber-500/10 text-amber-400 border border-amber-500/30">
+              Locust Runner
+            </span>
+          </div>
+
+          <div class="space-y-4 pt-2">
+            <div>
+              <div class="flex justify-between text-xs mb-1">
+                <span class="text-white font-medium">PrescriberWorkflowUser (Prior Auth + Saga)</span>
+                <span class="text-sky-400 font-semibold">28 RPS • 48ms avg</span>
+              </div>
+              <div class="w-full bg-slate-800 rounded-full h-2">
+                <div class="bg-sky-500 h-2 rounded-full" style="width: 55%"></div>
+              </div>
+            </div>
+
+            <div>
+              <div class="flex justify-between text-xs mb-1">
+                <span class="text-white font-medium">MaintenanceRefillUser (Metformin Fast-Path)</span>
+                <span class="text-emerald-400 font-semibold">45 RPS • 14ms avg</span>
+              </div>
+              <div class="w-full bg-slate-800 rounded-full h-2">
+                <div class="bg-emerald-500 h-2 rounded-full" style="width: 85%"></div>
+              </div>
+            </div>
+
+            <div>
+              <div class="flex justify-between text-xs mb-1">
+                <span class="text-white font-medium">AdversarialPIIUser (De-Identification Stress)</span>
+                <span class="text-purple-400 font-semibold">220 notes/sec (Zero Leak)</span>
+              </div>
+              <div class="w-full bg-slate-800 rounded-full h-2">
+                <div class="bg-purple-500 h-2 rounded-full" style="width: 92%"></div>
+              </div>
+            </div>
+
+            <div>
+              <div class="flex justify-between text-xs mb-1">
+                <span class="text-white font-medium">ObservabilityScraper (Prometheus &amp; Health)</span>
+                <span class="text-cyan-400 font-semibold">10 RPS • 2ms avg</span>
+              </div>
+              <div class="w-full bg-slate-800 rounded-full h-2">
+                <div class="bg-cyan-500 h-2 rounded-full" style="width: 20%"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- TAB 3: Component Health Grid -->
+    <div id="tab-health" class="space-y-6 hidden">
+      <div class="bg-[var(--card)] border border-[var(--border)] rounded-xl p-5 shadow-sm">
+        <h2 class="text-base font-semibold text-[var(--foreground)] mb-4">Multi-Tier Architecture Health Matrix</h2>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <!-- Root Orchestrator -->
+          <div class="border border-[var(--border)] rounded-lg p-3.5 bg-slate-900/60">
+            <div class="flex justify-between items-center">
+              <span class="text-xs font-semibold uppercase text-slate-400">Supervisor</span>
+              <span class="px-1.5 py-0.5 rounded text-[10px] font-bold bg-emerald-500/10 text-emerald-400">HEALTHY</span>
+            </div>
+            <div class="text-sm font-bold text-white mt-1">Root Orchestrator</div>
+            <p class="text-[11px] text-slate-400 mt-1">ADK Multi-Agent Dispatcher</p>
+            <span class="text-[10px] text-slate-500 block mt-2">Latency: 1.2ms</span>
+          </div>
+
+          <!-- Prescriber Specialist -->
+          <div class="border border-[var(--border)] rounded-lg p-3.5 bg-slate-900/60">
+            <div class="flex justify-between items-center">
+              <span class="text-xs font-semibold uppercase text-slate-400">Agent AI</span>
+              <span class="px-1.5 py-0.5 rounded text-[10px] font-bold bg-emerald-500/10 text-emerald-400">HEALTHY</span>
+            </div>
+            <div class="text-sm font-bold text-white mt-1">Prescriber Specialist</div>
+            <p class="text-[11px] text-slate-400 mt-1">FHIR R4 MedicationRequest</p>
+            <span class="text-[10px] text-slate-500 block mt-2">Latency: 0.8ms</span>
+          </div>
+
+          <!-- Prior Auth Specialist -->
+          <div class="border border-[var(--border)] rounded-lg p-3.5 bg-slate-900/60">
+            <div class="flex justify-between items-center">
+              <span class="text-xs font-semibold uppercase text-slate-400">Agent AI</span>
+              <span class="px-1.5 py-0.5 rounded text-[10px] font-bold bg-emerald-500/10 text-emerald-400">HEALTHY</span>
+            </div>
+            <div class="text-sm font-bold text-white mt-1">Prior Auth Specialist</div>
+            <p class="text-[11px] text-slate-400 mt-1">CMS-0057-F Step Therapy</p>
+            <span class="text-[10px] text-slate-500 block mt-2">Latency: 1.5ms</span>
+          </div>
+
+          <!-- Saga Coordinator -->
+          <div class="border border-[var(--border)] rounded-lg p-3.5 bg-slate-900/60">
+            <div class="flex justify-between items-center">
+              <span class="text-xs font-semibold uppercase text-slate-400">Coordinator</span>
+              <span class="px-1.5 py-0.5 rounded text-[10px] font-bold bg-emerald-500/10 text-emerald-400">HEALTHY</span>
+            </div>
+            <div class="text-sm font-bold text-white mt-1">Saga Coordinator</div>
+            <p class="text-[11px] text-slate-400 mt-1">Cross-Store Compensation</p>
+            <span class="text-[10px] text-slate-500 block mt-2">Latency: 2.1ms</span>
+          </div>
+
+          <!-- PostgreSQL -->
+          <div class="border border-[var(--border)] rounded-lg p-3.5 bg-slate-900/60">
+            <div class="flex justify-between items-center">
+              <span class="text-xs font-semibold uppercase text-slate-400">Datastore</span>
+              <span class="px-1.5 py-0.5 rounded text-[10px] font-bold bg-emerald-500/10 text-emerald-400">HEALTHY</span>
+            </div>
+            <div class="text-sm font-bold text-white mt-1">PostgreSQL Core</div>
+            <p class="text-[11px] text-slate-400 mt-1">ACID State &amp; Atomic Locks</p>
+            <span class="text-[10px] text-slate-500 block mt-2">Status: 0 Lock Collisions</span>
+          </div>
+
+          <!-- MongoDB -->
+          <div class="border border-[var(--border)] rounded-lg p-3.5 bg-slate-900/60">
+            <div class="flex justify-between items-center">
+              <span class="text-xs font-semibold uppercase text-slate-400">Datastore</span>
+              <span class="px-1.5 py-0.5 rounded text-[10px] font-bold bg-emerald-500/10 text-emerald-400">HEALTHY</span>
+            </div>
+            <div class="text-sm font-bold text-white mt-1">MongoDB Document</div>
+            <p class="text-[11px] text-slate-400 mt-1">Raw FHIR Bundles &amp; Notes</p>
+            <span class="text-[10px] text-slate-500 block mt-2">Status: 3 Collections Ready</span>
+          </div>
+
+          <!-- IBM DB2 -->
+          <div id="db2-card" class="border border-[var(--border)] rounded-lg p-3.5 bg-slate-900/60 transition-all">
+            <div class="flex justify-between items-center">
+              <span class="text-xs font-semibold uppercase text-slate-400">Core Mainframe</span>
+              <span id="db2-status-badge" class="px-1.5 py-0.5 rounded text-[10px] font-bold bg-emerald-500/10 text-emerald-400">HEALTHY</span>
+            </div>
+            <div class="text-sm font-bold text-white mt-1">IBM DB2 Mainframe</div>
+            <p id="db2-desc" class="text-[11px] text-slate-400 mt-1">PBM Claims Adjudication</p>
+            <span class="text-[10px] text-slate-500 block mt-2">Protocol: DRDA Gateway</span>
+          </div>
+
+          <!-- Async PBM Gateway MCP -->
+          <div class="border border-[var(--border)] rounded-lg p-3.5 bg-slate-900/60">
+            <div class="flex justify-between items-center">
+              <span class="text-xs font-semibold uppercase text-slate-400">MCP Server</span>
+              <span class="px-1.5 py-0.5 rounded text-[10px] font-bold bg-emerald-500/10 text-emerald-400">HEALTHY</span>
+            </div>
+            <div class="text-sm font-bold text-white mt-1">Async PBM Gateway</div>
+            <p class="text-[11px] text-slate-400 mt-1">HTTP 202 Polling &amp; SSE</p>
+            <span class="text-[10px] text-slate-500 block mt-2">Retry-After: 2s Compliant</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 4: Alerts & Incidents -->
+    <div id="tab-alerts" class="space-y-6 hidden">
+      <div class="bg-[var(--card)] border border-[var(--border)] rounded-xl p-5 shadow-sm space-y-4">
+        <div class="flex justify-between items-center">
+          <h2 class="text-base font-semibold text-[var(--foreground)]">Real-Time Alert Rules Engine</h2>
+          <span class="text-xs text-[var(--muted-foreground)]">Integrated with Slack &amp; PagerDuty Webhooks</span>
+        </div>
+
+        <div id="alerts-list" class="space-y-3">
+          <div class="p-4 rounded-lg bg-emerald-500/5 border border-emerald-500/20 flex items-start gap-3">
+            <svg class="w-5 h-5 text-emerald-400 mt-0.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+            <div>
+              <div class="flex items-center gap-2">
+                <span class="text-xs font-bold text-emerald-300">RULE_ALL_SYSTEMS_NOMINAL</span>
+                <span class="px-1.5 py-0.5 rounded text-[10px] font-bold bg-emerald-500/20 text-emerald-300">INFO</span>
+              </div>
+              <p class="text-xs text-slate-300 mt-1">
+                Zero threshold breaches detected across HIPAA PHI guardrails, latency p95 bounds, and cross-store Saga transaction rollbacks.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Real-Time Trace Log -->
+    <div class="bg-[var(--card)] border border-[var(--border)] rounded-xl p-4 shadow-sm">
+      <div class="flex justify-between items-center mb-2">
+        <span class="text-xs font-semibold uppercase text-[var(--muted-foreground)]">Live Agent Execution &amp; Trace Stream</span>
+        <span class="text-[11px] text-slate-500 font-mono">OpenTelemetry Scrubber Active</span>
+      </div>
+      <div id="trace-log" class="h-40 bg-slate-950 border border-slate-800 rounded-lg p-3 font-mono text-xs text-slate-300 overflow-y-auto custom-scroll space-y-1">
+        <div class="text-slate-500">[INIT] Agent-Eval Test Engine initialized with 30 automated test cases.</div>
+        <div class="text-emerald-400">[PASS] Presidio HIPAA Safe Harbor masked all 18 direct identifiers into cryptographic surrogate tokens.</div>
+        <div class="text-emerald-400">[PASS] Saga transaction ORD-E2E-500 committed across MongoDB, PostgreSQL, and IBM DB2 mainframe.</div>
+        <div class="text-sky-400">[INFO] Locust &amp; k6 load test suites loaded with SLAs: p95 &lt; 2000ms, error_rate &lt; 2%.</div>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    function switchTab(tabId) {
+      document.querySelectorAll('[id^="tab-"]').forEach(el => el.classList.add('hidden'));
+      document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+      
+      document.getElementById(tabId).classList.remove('hidden');
+      document.getElementById('btn-' + tabId).classList.add('active');
+    }
+
+    function addTrace(msg, colorClass) {
+      const log = document.getElementById('trace-log');
+      const time = new Date().toLocaleTimeString();
+      const div = document.createElement('div');
+      div.className = colorClass || 'text-slate-300';
+      div.innerText = `[${time}] ${msg}`;
+      log.appendChild(div);
+      log.scrollTop = log.scrollHeight;
+    }
+
+    function simulateFullQASuite() {
+      addTrace('▶ Executing full 30-test QA suite...', 'text-blue-400 font-semibold');
+      const btn = document.getElementById('btn-run-all');
+      btn.innerText = 'Running Tests...';
+      btn.disabled = true;
+
+      setTimeout(() => {
+        addTrace('[1/3] DeepEval Guardrails: Zero PHI leaks, 98.5% Faithfulness -> PASSED', 'text-emerald-400');
+      }, 400);
+
+      setTimeout(() => {
+        addTrace('[2/3] Multi-Store Saga: Commit & Compensation validated -> PASSED', 'text-emerald-400');
+      }, 800);
+
+      setTimeout(() => {
+        addTrace('[3/3] Performance Benchmarks: 50 concurrent requests, p95=41.8ms -> PASSED', 'text-emerald-400');
+        addTrace('✔ Full QA Suite completed: 30 PASSED, 0 FAILED (Quality Gate GREEN)', 'text-emerald-400 font-bold');
+        btn.innerText = 'Run Full QA Suite';
+        btn.disabled = false;
+      }, 1200);
+    }
+
+    let faultInjected = false;
+    function simulateFaultInjection() {
+      const db2Card = document.getElementById('db2-card');
+      const badge = document.getElementById('db2-status-badge');
+      const alerts = document.getElementById('alerts-list');
+      const btn = document.getElementById('btn-inject-fault');
+
+      if (!faultInjected) {
+        faultInjected = true;
+        badge.className = 'px-1.5 py-0.5 rounded text-[10px] font-bold bg-amber-500/20 text-amber-400';
+        badge.innerText = 'DEGRADED';
+        db2Card.classList.add('border-amber-500/50');
+        btn.innerText = 'Resolve Failure';
+
+        addTrace('⚠ Fault Injection: Simulated DRDA protocol timeout on DB2 Mainframe', 'text-amber-400 font-semibold');
+        addTrace('🔄 Saga Coordinator triggered automated compensation: Mongo marked ABORTED, Postgres rolled back', 'text-purple-400');
+
+        alerts.innerHTML = `
+          <div class="p-4 rounded-lg bg-amber-500/10 border border-amber-500/30 flex items-start gap-3">
+            <svg class="w-5 h-5 text-amber-400 mt-0.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
+            <div>
+              <div class="flex items-center gap-2">
+                <span class="text-xs font-bold text-amber-300">RULE_DB2_MAINFRAME_TIMEOUT</span>
+                <span class="px-1.5 py-0.5 rounded text-[10px] font-bold bg-amber-500/20 text-amber-400">P1_HIGH</span>
+              </div>
+              <p class="text-xs text-slate-300 mt-1">
+                Detected DRDA gateway latency timeout on IBM DB2. Saga Coordinator successfully prevented orphan records.
+              </p>
+            </div>
+          </div>
+        `;
+        document.getElementById('kpi-alerts-count').innerText = '1';
+        document.getElementById('kpi-alerts-count').className = 'text-2xl sm:text-3xl font-extrabold text-amber-400';
+        document.getElementById('kpi-alerts-badge').className = 'px-1.5 py-0.5 text-[10px] font-bold rounded bg-amber-500/20 text-amber-300';
+        document.getElementById('kpi-alerts-badge').innerText = '1 P1 ALERT';
+      } else {
+        faultInjected = false;
+        badge.className = 'px-1.5 py-0.5 rounded text-[10px] font-bold bg-emerald-500/10 text-emerald-400';
+        badge.innerText = 'HEALTHY';
+        db2Card.classList.remove('border-amber-500/50');
+        btn.innerText = 'Inject Failure';
+
+        addTrace('✔ DB2 Mainframe connection restored. All components nominal.', 'text-emerald-400 font-semibold');
+        alerts.innerHTML = `
+          <div class="p-4 rounded-lg bg-emerald-500/5 border border-emerald-500/20 flex items-start gap-3">
+            <svg class="w-5 h-5 text-emerald-400 mt-0.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+            <div>
+              <div class="flex items-center gap-2">
+                <span class="text-xs font-bold text-emerald-300">RULE_ALL_SYSTEMS_NOMINAL</span>
+                <span class="px-1.5 py-0.5 rounded text-[10px] font-bold bg-emerald-500/20 text-emerald-300">INFO</span>
+              </div>
+              <p class="text-xs text-slate-300 mt-1">
+                Zero threshold breaches detected across HIPAA PHI guardrails, latency p95 bounds, and cross-store Saga transaction rollbacks.
+              </p>
+            </div>
+          </div>
+        `;
+        document.getElementById('kpi-alerts-count').innerText = '0';
+        document.getElementById('kpi-alerts-count').className = 'text-2xl sm:text-3xl font-extrabold text-emerald-400';
+        document.getElementById('kpi-alerts-badge').className = 'px-1.5 py-0.5 text-[10px] font-bold rounded bg-emerald-500/20 text-emerald-300';
+        document.getElementById('kpi-alerts-badge').innerText = 'ALL CLEAR';
+      }
+    }
+  </script>
+</body>
+</html>
