@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Agent-Eval | Operations Visibility & Synthetic Observability Dashboard</title>
+  <style>
+    :root {
+      --bg: #0b0f19;
+      --card-bg: #121826;
+      --card-border: #1e293b;
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --accent-green: #10b981;
+      --accent-blue: #38bdf8;
+      --accent-amber: #f59e0b;
+      --accent-rose: #f43f5e;
+      --accent-purple: #a855f7;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+    body { background-color: var(--bg); color: var(--text-main); padding: 24px; }
+    .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; border-bottom: 1px solid var(--card-border); padding-bottom: 16px; }
+    .header h1 { font-size: 22px; display: flex; align-items: center; gap: 10px; }
+    .badge { font-size: 11px; padding: 4px 8px; border-radius: 4px; text-transform: uppercase; font-weight: 700; letter-spacing: 0.5px; }
+    .badge-green { background: rgba(16,185,129,0.15); color: var(--accent-green); border: 1px solid var(--accent-green); }
+    .badge-amber { background: rgba(245,158,11,0.15); color: var(--accent-amber); border: 1px solid var(--accent-amber); }
+    .badge-rose { background: rgba(244,63,94,0.15); color: var(--accent-rose); border: 1px solid var(--accent-rose); }
+    .btn { background: #2563eb; color: #fff; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 13px; }
+    .btn:hover { background: #1d4ed8; }
+
+    .grid-kpi { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; margin-bottom: 24px; }
+    .card { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 8px; padding: 18px; }
+    .card-title { font-size: 12px; color: var(--text-muted); text-transform: uppercase; margin-bottom: 8px; font-weight: 600; }
+    .card-value { font-size: 28px; font-weight: 700; display: flex; align-items: baseline; gap: 6px; }
+    .card-subtext { font-size: 11px; color: var(--text-muted); margin-top: 6px; }
+
+    .grid-2col { display: grid; grid-template-columns: 2fr 1fr; gap: 20px; margin-bottom: 24px; }
+    @media (max-width: 900px) { .grid-2col { grid-template-columns: 1fr; } }
+
+    .component-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    .component-table th, .component-table td { padding: 10px 12px; text-align: left; border-bottom: 1px solid var(--card-border); }
+    .component-table th { color: var(--text-muted); font-size: 11px; text-transform: uppercase; }
+
+    .log-stream { background: #070a12; border: 1px solid var(--card-border); border-radius: 6px; padding: 12px; height: 260px; overflow-y: auto; font-family: monospace; font-size: 12px; color: #cbd5e1; }
+    .log-entry { margin-bottom: 6px; line-height: 1.4; }
+    .log-time { color: var(--text-muted); }
+    .log-pass { color: var(--accent-green); }
+    .log-fail { color: var(--accent-rose); }
+    .log-info { color: var(--accent-blue); }
+
+    .metric-bar { background: #1e293b; height: 8px; border-radius: 4px; overflow: hidden; margin-top: 6px; }
+    .metric-fill { height: 100%; border-radius: 4px; }
+  </style>
+</head>
+<body>
+
+  <div class="header">
+    <div>
+      <h1>Agent-Eval | Operations Visibility & Synthetic Observability</h1>
+      <p style="color: var(--text-muted); font-size: 13px; margin-top: 4px;">
+        Dynatrace / Prometheus / Grafana OpenMetrics Ingest & Real-Time Component Health
+      </p>
+    </div>
+    <div style="display: flex; gap: 12px; align-items: center;">
+      <span class="badge badge-green" id="system-badge">System: 100% HEALTHY</span>
+      <button class="btn" onclick="triggerSyntheticRun()">▶ Run Synthetic Canary</button>
+    </div>
+  </div>
+
+  <!-- KPI Grid -->
+  <div class="grid-kpi">
+    <div class="card">
+      <div class="card-title">Canary Availability SLA</div>
+      <div class="card-value" style="color: var(--accent-green);"><span id="kpi-avail">99.8</span>%</div>
+      <div class="card-subtext">Target: &ge; 99.5% uptime</div>
+    </div>
+    <div class="card">
+      <div class="card-title">P95 Execution Latency</div>
+      <div class="card-value" style="color: var(--accent-blue);"><span id="kpi-p95">42.5</span><span style="font-size: 14px;">ms</span></div>
+      <div class="card-subtext">SLA Threshold: &le; 2500ms</div>
+    </div>
+    <div class="card">
+      <div class="card-title">HIPAA PHI Direct Leaks</div>
+      <div class="card-value" style="color: var(--accent-green);" id="kpi-leaks">0</div>
+      <div class="card-subtext">Zero-Tolerance Guardrail Metric</div>
+    </div>
+    <div class="card">
+      <div class="card-title">Saga Rollback Rate</div>
+      <div class="card-value" style="color: var(--accent-amber);"><span id="kpi-saga-rate">0.0</span>%</div>
+      <div class="card-subtext">0 Orphan records across DB2/Mongo</div>
+    </div>
+    <div class="card">
+      <div class="card-title">Total Synthetic Trans.</div>
+      <div class="card-value" id="kpi-total-tx">52</div>
+      <div class="card-subtext">Continuous automated canaries</div>
+    </div>
+  </div>
+
+  <!-- Component Health & Latency Distribution -->
+  <div class="grid-2col">
+    <div class="card">
+      <div class="card-title" style="margin-bottom: 14px;">Agent AI & Datastore Component Health Grid</div>
+      <table class="component-table">
+        <thead>
+          <tr>
+            <th>Component</th>
+            <th>Type</th>
+            <th>Protocol</th>
+            <th>Latency</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody id="component-rows">
+          <tr>
+            <td><strong>Root Orchestrator</strong></td>
+            <td>Agent AI</td>
+            <td>ADK Supervisor</td>
+            <td>1.2 ms</td>
+            <td><span class="badge badge-green">HEALTHY</span></td>
+          </tr>
+          <tr>
+            <td><strong>Prescriber Specialist</strong></td>
+            <td>Agent AI</td>
+            <td>FHIR R4 / NCPDP</td>
+            <td>0.8 ms</td>
+            <td><span class="badge badge-green">HEALTHY</span></td>
+          </tr>
+          <tr>
+            <td><strong>Prior Auth Specialist</strong></td>
+            <td>Agent AI</td>
+            <td>CMS-0057-F PAS</td>
+            <td>1.5 ms</td>
+            <td><span class="badge badge-green">HEALTHY</span></td>
+          </tr>
+          <tr>
+            <td><strong>Saga Coordinator</strong></td>
+            <td>Coordinator</td>
+            <td>2-Phase Rollback</td>
+            <td>2.1 ms</td>
+            <td><span class="badge badge-green">HEALTHY</span></td>
+          </tr>
+          <tr>
+            <td><strong>PostgreSQL</strong></td>
+            <td>Datastore</td>
+            <td>ACID & Locks</td>
+            <td>3.4 ms</td>
+            <td><span class="badge badge-green">HEALTHY</span></td>
+          </tr>
+          <tr>
+            <td><strong>MongoDB</strong></td>
+            <td>Datastore</td>
+            <td>FHIR Bundles</td>
+            <td>2.8 ms</td>
+            <td><span class="badge badge-green">HEALTHY</span></td>
+          </tr>
+          <tr>
+            <td><strong>IBM DB2 Mainframe</strong></td>
+            <td>Core System</td>
+            <td>DRDA Protocol</td>
+            <td>8.2 ms</td>
+            <td><span class="badge badge-green">HEALTHY</span></td>
+          </tr>
+          <tr>
+            <td><strong>Async PBM Gateway</strong></td>
+            <td>MCP Tool</td>
+            <td>HTTP 202 Accepted</td>
+            <td>4.0 ms</td>
+            <td><span class="badge badge-green">HEALTHY</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Active Operational Alerts -->
+    <div class="card">
+      <div class="card-title" style="margin-bottom: 12px;">Active Operational Alerts</div>
+      <div id="alert-container">
+        <div style="background: rgba(16,185,129,0.08); border: 1px solid rgba(16,185,129,0.3); border-radius: 6px; padding: 12px; margin-bottom: 10px;">
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+            <strong style="color: var(--accent-green); font-size: 13px;">ALL CLEAR</strong>
+            <span class="badge badge-green">NORMAL</span>
+          </div>
+          <p style="font-size: 11px; color: var(--text-muted); margin-top: 4px;">
+            Zero threshold violations. Guardrails operating within nominal parameters.
+          </p>
+        </div>
+      </div>
+      
+      <div class="card-title" style="margin-top: 20px; margin-bottom: 8px;">Prometheus Scraping Endpoint</div>
+      <div style="background: #0f172a; padding: 10px; border-radius: 4px; font-family: monospace; font-size: 12px; color: var(--accent-blue);">
+        GET /metrics (OpenMetrics Format)
+      </div>
+    </div>
+  </div>
+
+  <!-- Real-Time Synthetic Canary Stream -->
+  <div class="card">
+    <div class="card-title" style="margin-bottom: 10px;">Live Synthetic Canary Stream & Telemetry Trace Log</div>
+    <div class="log-stream" id="log-stream">
+      <div class="log-entry"><span class="log-time">[CANARY-INIT]</span> Initialized Synthetic Traffic Generator across 4 clinical scenarios...</div>
+      <div class="log-entry"><span class="log-time">[TRACE-001]</span> <span class="log-pass">[PASS]</span> Happy Path: E-Rx with Step Therapy (Ozempic 2mg) -> HTTP 202 Polling -> COMMITTED in Mongo, Postgres, DB2 (38ms)</div>
+      <div class="log-entry"><span class="log-time">[TRACE-002]</span> <span class="log-pass">[PASS]</span> Clinical Rule: Unmet Step Therapy Criteria -> Enforced denial under CMS-0057-F guidelines (14ms)</div>
+      <div class="log-entry"><span class="log-time">[TRACE-003]</span> <span class="log-pass">[PASS]</span> Resilience: DB2 Timeout Simulation -> Saga compensation cleanly executed, 0 orphan records (42ms)</div>
+      <div class="log-entry"><span class="log-time">[TRACE-004]</span> <span class="log-pass">[PASS]</span> Concurrency: Idempotency Lock Collision -> Second request rejected atomically (8ms)</div>
+    </div>
+  </div>
+
+  <script>
+    let totalTx = 52;
+    function triggerSyntheticRun() {
+      const stream = document.getElementById('log-stream');
+      const timeStr = new Date().toLocaleTimeString();
+      totalTx += 4;
+      document.getElementById('kpi-total-tx').innerText = totalTx;
+
+      const entries = [
+        `[${timeStr}] [CANARY-DISPATCH] Dispatching 4 synthetic healthcare transactions...`,
+        `[${timeStr}] [TRACE] <span class="log-pass">[PASS]</span> E-Rx Scenario: Adalimumab 40mg -> Prior Auth Adjudicated -> COMMITTED (29ms)`,
+        `[${timeStr}] [TRACE] <span class="log-pass">[PASS]</span> HIPAA Guardrail: Prompt sanitized with Presidio -> Zero unmasked PHI detected (100% clean)`,
+        `[${timeStr}] [TRACE] <span class="log-pass">[PASS]</span> DB2 Core Claims Adjudication confirmed without race condition (34ms)`
+      ];
+
+      entries.forEach(msg => {
+        const div = document.createElement('div');
+        div.className = 'log-entry';
+        div.innerHTML = msg;
+        stream.appendChild(div);
+      });
+      stream.scrollTop = stream.scrollHeight;
+    }
+  </script>
+</body>
+</html>

@@ -1,4 +1,4 @@
-"""Universal test runner executing unit tests and guardrails."""
+"""Universal test runner executing unit tests, guardrails, health probes, and synthetic canaries."""
 import sys
 import os
 
@@ -27,10 +27,27 @@ from tests.test_deepeval_guardrails import (
     test_clinical_faithfulness_metric,
     test_async_workflow_sla_metric
 )
+from tests.test_telemetry_metrics import (
+    test_metrics_counter_and_gauge,
+    test_histogram_percentiles,
+    test_prometheus_text_export
+)
+from tests.test_component_health import (
+    test_component_health_all_healthy,
+    test_component_health_degrades_on_db2_timeout
+)
+from tests.test_alerts import (
+    test_alert_fires_on_phi_leak,
+    test_alert_fires_on_saga_abort_spike,
+    test_alert_fires_on_latency_breach
+)
+from tests.test_synthetic_canary import (
+    test_synthetic_canary_runner_batch
+)
 
 def run_all_tests():
     print("======================================================================")
-    print("  RUNNING HEALTHCARE AGENT & DEEPEVAL GUARDRAIL SUITE")
+    print("  RUNNING HEALTHCARE AGENT, DEEPEVAL, AND OPERATIONS TELEMETRY SUITE")
     print("======================================================================")
     
     passed = 0
@@ -56,7 +73,24 @@ def run_all_tests():
         ("test_hipaa_phi_guardrail_zero_leakage", lambda: test_hipaa_phi_guardrail_zero_leakage()),
         ("test_hipaa_phi_guardrail_catches_leak", lambda: test_hipaa_phi_guardrail_catches_leak()),
         ("test_clinical_faithfulness_metric", lambda: test_clinical_faithfulness_metric()),
-        ("test_async_workflow_sla_metric", lambda: test_async_workflow_sla_metric())
+        ("test_async_workflow_sla_metric", lambda: test_async_workflow_sla_metric()),
+
+        # Telemetry, Prometheus & Performance Metrics
+        ("test_metrics_counter_and_gauge", lambda: test_metrics_counter_and_gauge()),
+        ("test_histogram_percentiles", lambda: test_histogram_percentiles()),
+        ("test_prometheus_text_export", lambda: test_prometheus_text_export()),
+
+        # Component Health Probes
+        ("test_component_health_all_healthy", lambda: test_component_health_all_healthy()),
+        ("test_component_health_degrades_on_db2_timeout", lambda: test_component_health_degrades_on_db2_timeout()),
+
+        # Operational Alerting Engine
+        ("test_alert_fires_on_phi_leak", lambda: test_alert_fires_on_phi_leak()),
+        ("test_alert_fires_on_saga_abort_spike", lambda: test_alert_fires_on_saga_abort_spike()),
+        ("test_alert_fires_on_latency_breach", lambda: test_alert_fires_on_latency_breach()),
+
+        # Synthetic Canary Runner
+        ("test_synthetic_canary_runner_batch", lambda: test_synthetic_canary_runner_batch())
     ]
 
     for name, fn in tests:

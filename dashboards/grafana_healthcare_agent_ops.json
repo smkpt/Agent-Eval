@@ -1,0 +1,226 @@
+{
+  "annotations": {
+    "list": []
+  },
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 0,
+  "id": null,
+  "links": [],
+  "liveNow": true,
+  "panels": [
+    {
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 0 },
+      "id": 100,
+      "title": "Agent AI Executive Summary & Uptime",
+      "type": "row"
+    },
+    {
+      "datasource": "Prometheus",
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "red", "value": null },
+              { "color": "yellow", "value": 90 },
+              { "color": "green", "value": 99 }
+            ]
+          },
+          "unit": "percent"
+        }
+      },
+      "gridPos": { "h": 4, "w": 6, "x": 0, "y": 1 },
+      "id": 1,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false }
+      },
+      "title": "Synthetic Canary Availability",
+      "type": "stat",
+      "targets": [{ "expr": "synthetic_canary_availability_pct", "legendFormat": "Availability %" }]
+    },
+    {
+      "datasource": "Prometheus",
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "yellow", "value": 500 },
+              { "color": "red", "value": 2000 }
+            ]
+          },
+          "unit": "ms"
+        }
+      },
+      "gridPos": { "h": 4, "w": 6, "x": 6, "y": 1 },
+      "id": 2,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false }
+      },
+      "title": "P95 Agent Execution Latency",
+      "type": "stat",
+      "targets": [{ "expr": "agent_latency_ms{quantile=\"0.95\"}", "legendFormat": "p95 Latency" }]
+    },
+    {
+      "datasource": "Prometheus",
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "red", "value": 1 }
+            ]
+          },
+          "unit": "short"
+        }
+      },
+      "gridPos": { "h": 4, "w": 6, "x": 12, "y": 1 },
+      "id": 3,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false }
+      },
+      "title": "HIPAA PHI Unmasked Leaks",
+      "type": "stat",
+      "targets": [{ "expr": "phi_leak_events_total", "legendFormat": "Leaks Detected" }]
+    },
+    {
+      "datasource": "Prometheus",
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "blue", "value": null }
+            ]
+          },
+          "unit": "short"
+        }
+      },
+      "gridPos": { "h": 4, "w": 6, "x": 18, "y": 1 },
+      "id": 4,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false }
+      },
+      "title": "Total Clinical Rx Requests",
+      "type": "stat",
+      "targets": [{ "expr": "sum(agent_requests_total)", "legendFormat": "Total Requests" }]
+    },
+    {
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 5 },
+      "id": 101,
+      "title": "Component Health Grid & Multi-Tier Datastores",
+      "type": "row"
+    },
+    {
+      "datasource": "Prometheus",
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "mappings": [
+            { "options": { "0": { "color": "red", "text": "DOWN" }, "0.5": { "color": "orange", "text": "DEGRADED" }, "1": { "color": "green", "text": "UP" } }, "type": "value" }
+          ],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "red", "value": null },
+              { "color": "orange", "value": 0.5 },
+              { "color": "green", "value": 1.0 }
+            ]
+          }
+        }
+      },
+      "gridPos": { "h": 5, "w": 24, "x": 0, "y": 6 },
+      "id": 5,
+      "options": {
+        "alignValue": "center",
+        "colorMode": "background",
+        "displayMode": "gradient",
+        "orientation": "horizontal"
+      },
+      "title": "Agent AI Component Health Probes (Root, Prescriber, PriorAuth, Mongo, Postgres, DB2)",
+      "type": "bargauge",
+      "targets": [{ "expr": "component_health_status", "legendFormat": "{{component}}" }]
+    },
+    {
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 11 },
+      "id": 102,
+      "title": "Performance Latency Percentiles & Saga Integrity",
+      "type": "row"
+    },
+    {
+      "datasource": "Prometheus",
+      "fieldConfig": {
+        "defaults": {
+          "custom": { "drawStyle": "line", "lineInterpolation": "smooth" },
+          "unit": "ms"
+        }
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 12 },
+      "id": 6,
+      "title": "Agent Execution Latency Distribution (p50, p90, p95, p99)",
+      "type": "timeseries",
+      "targets": [
+        { "expr": "agent_latency_ms{quantile=\"0.5\"}", "legendFormat": "p50 Latency" },
+        { "expr": "agent_latency_ms{quantile=\"0.9\"}", "legendFormat": "p90 Latency" },
+        { "expr": "agent_latency_ms{quantile=\"0.95\"}", "legendFormat": "p95 Latency" },
+        { "expr": "agent_latency_ms{quantile=\"0.99\"}", "legendFormat": "p99 Latency" }
+      ]
+    },
+    {
+      "datasource": "Prometheus",
+      "fieldConfig": {
+        "defaults": {
+          "custom": { "drawStyle": "bars", "stacking": { "mode": "normal" } }
+        }
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 12 },
+      "id": 7,
+      "title": "Cross-Store Saga Transactions: Committed vs Compensated",
+      "type": "timeseries",
+      "targets": [
+        { "expr": "saga_transactions_total{status=\"committed\"}", "legendFormat": "Committed (All Tiers)" },
+        { "expr": "saga_transactions_total{status=\"compensated\"}", "legendFormat": "Compensated (Rollback Triggered)" }
+      ]
+    }
+  ],
+  "refresh": "5s",
+  "schemaVersion": 38,
+  "style": "dark",
+  "tags": ["healthcare", "agent-ai", "deepeval", "operations", "dynatrace", "prometheus"],
+  "time": { "from": "now-1h", "to": "now" },
+  "timepicker": {},
+  "timezone": "browser",
+  "title": "Agent-Eval: Healthcare AI Operations Visibility Dashboard",
+  "uid": "healthcare-agent-ops-01",
+  "version": 1
+}

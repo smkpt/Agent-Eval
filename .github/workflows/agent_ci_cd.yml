@@ -1,4 +1,4 @@
-name: Healthcare Agent CI/CD & DeepEval Quality Gates
+name: Healthcare Agent CI/CD, DeepEval & Observability Suite
 
 on:
   push:
@@ -8,7 +8,7 @@ on:
 
 jobs:
   agent-validation:
-    name: Guardrail Evaluation & Data Integrity Suite
+    name: Guardrail Evaluation, Health Probes & Operations Telemetry
     runs-on: ubuntu-latest
 
     steps:
@@ -45,6 +45,22 @@ jobs:
         run: |
           python -m pytest tests/test_deepeval_guardrails.py -v
 
-      - name: Execute Universal Test Suite
+      - name: Verify Telemetry, Metrics & Prometheus Exporter
+        run: |
+          python -m pytest tests/test_telemetry_metrics.py -v
+
+      - name: Verify Component Health Probes & Degradation
+        run: |
+          python -m pytest tests/test_component_health.py -v
+
+      - name: Verify Operational Alerting Rules Engine
+        run: |
+          python -m pytest tests/test_alerts.py -v
+
+      - name: Verify Synthetic Canary Traffic & SLA
+        run: |
+          python -m pytest tests/test_synthetic_canary.py -v
+
+      - name: Execute Full Universal Test Suite
         run: |
           python run_tests.py

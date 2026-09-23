@@ -1,0 +1,54 @@
+# Dynatrace OpenTelemetry Collector Configuration for Agent-Eval
+# Standardized telemetry ingestion for Agent AI performance and component health
+
+receivers:
+  prometheus:
+    config:
+      scrape_configs:
+        - job_name: 'healthcare-agent-poc'
+          scrape_interval: 10s
+          static_configs:
+            - targets: ['localhost:8000']
+              labels:
+                service.name: 'healthcare-agent-ai'
+                environment: 'production'
+
+  otlp:
+    protocols:
+      grpc:
+        endpoint: 0.0.0.0:4317
+      http:
+        endpoint: 0.0.0.0:4318
+
+processors:
+  batch:
+    send_batch_max_size: 1000
+    timeout: 5s
+
+  # Zero-leak PHI telemetry scrubber processor
+  attributes/phi_scrub:
+    actions:
+      - key: "patient.ssn"
+        action: delete
+      - key: "patient.name"
+        action: delete
+      - key: "patient.dob"
+        action: delete
+
+exporters:
+  # Dynatrace Ingestion Exporter
+  otlphttp/dynatrace:
+    endpoint: "https://${DYNATRACE_TENANT}.live.dynatrace.com/api/v2/otlp"
+    headers:
+      Authorization: "Api-Token ${DYNATRACE_API_TOKEN}"
+
+service:
+  pipelines:
+    metrics:
+      receivers: [prometheus, otlp]
+      processors: [batch, attributes/phi_scrub]
+      exporters: [otlphttp/dynatrace]
+    traces:
+      receivers: [otlp]
+      processors: [batch, attributes/phi_scrub]
+      exporters: [otlphttp/dynatrace]
