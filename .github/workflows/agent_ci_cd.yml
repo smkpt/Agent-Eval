@@ -75,19 +75,4 @@ jobs:
 
       - name: Execute Headless Locust Load Test (Local Server Simulation)
         run: |
-          python -c "
-          import uvicorn, threading, time
-          from src.api.app import app
-          server = uvicorn.Server(uvicorn.Config(app, host='127.0.0.1', port=8000, log_level='error'))
-          t = threading.Thread(target=server.run, daemon=True)
-          t.start()
-          time.sleep(2)
-          import subprocess
-          res = subprocess.run([
-              'locust', '-f', 'perf/locustfile.py', '--headless',
-              '-u', '10', '-r', '5', '--run-time', '5s',
-              '--host', 'http://127.0.0.1:8000'
-          ], capture_output=True, text=True)
-          print(res.stdout)
-          assert res.returncode == 0
-          "
+          python perf/run_locust.py

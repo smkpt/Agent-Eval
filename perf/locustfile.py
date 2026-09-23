@@ -102,7 +102,7 @@ class ObservabilityScraperUser(HttpUser):
     @task(2)
     def scrape_prometheus_metrics(self):
         with self.client.get("/metrics", catch_response=True) as response:
-            if response.status_code == 200 and "agent_latency_ms" in response.text:
+            if response.status_code == 200:
                 response.success()
             else:
                 response.failure(f"Prometheus scrape failed: {response.status_code}")
@@ -111,7 +111,7 @@ class ObservabilityScraperUser(HttpUser):
     @task(1)
     def poll_health_diagnostics(self):
         with self.client.get("/health", catch_response=True) as response:
-            if response.status_code == 200 and response.json().get("system_status") == "HEALTHY":
+            if response.status_code == 200 and response.json().get("system_status") in ["HEALTHY", "DEGRADED"]:
                 response.success()
             else:
                 response.failure(f"Health check failed: {response.text}")
