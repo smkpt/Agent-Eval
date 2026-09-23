@@ -1,0 +1,50 @@
+name: Healthcare Agent CI/CD & DeepEval Quality Gates
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  agent-validation:
+    name: Guardrail Evaluation & Data Integrity Suite
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: 'pip'
+
+      - name: Install Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Verify PHI Masking & Telemetry Sanitization
+        run: |
+          python -m pytest tests/test_phi_masking.py -v
+
+      - name: Verify Multi-Tier Data Integrity across MongoDB, Postgres, and DB2
+        run: |
+          python -m pytest tests/test_data_integrity.py -v
+
+      - name: Verify Asynchronous Pharmacy & Prior Auth (HTTP 202)
+        run: |
+          python -m pytest tests/test_async_workflow.py -v
+
+      - name: Execute DeepEval Guardrails & Clinical Validations
+        env:
+          DEEPEVAL_TELEMETRY_OPT_OUT: "YES"
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        run: |
+          python -m pytest tests/test_deepeval_guardrails.py -v
+
+      - name: Execute Universal Test Suite
+        run: |
+          python run_tests.py
