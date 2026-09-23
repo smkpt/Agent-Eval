@@ -71,7 +71,7 @@ class SagaCoordinator:
             }
 
         except Exception as exc:
-            logger.error(f"Saga failed during step execution: {str(exc)}. Initiating automated compensation.")
+            logger.warning(f"Saga step execution failed: {str(exc)}. Initiating automated compensation.")
             self._compensate(order_id, claim_id)
             return {
                 "order_id": order_id,

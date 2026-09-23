@@ -50,11 +50,11 @@ def test_concurrent_load_throughput():
         }
         return orchestrator.handle_clinical_request(payload)
 
-    start = time.time()
+    start = time.perf_counter()
     with concurrent.futures.ThreadPoolExecutor(max_workers=10) as executor:
         futures = [executor.submit(submit_tx, i) for i in range(concurrency)]
         results = [f.result() for f in concurrent.futures.as_completed(futures)]
-    total_time = time.time() - start
+    total_time = max(time.perf_counter() - start, 0.0001)
 
     rps = concurrency / total_time
     committed_count = sum(1 for r in results if r.get("order_status") == "COMMITTED")
@@ -70,7 +70,7 @@ def test_latency_percentiles_sla():
 
     iterations = 50
     for i in range(iterations):
-        t0 = time.time()
+        t0 = time.perf_counter()
         payload = {
             "order_id": f"LAT-SLA-{i}",
             "idempotency_key": f"IDEMP-LAT-{i}",
@@ -79,7 +79,7 @@ def test_latency_percentiles_sla():
             "clinical_notes": "Routine diabetic checkup."
         }
         res = orchestrator.handle_clinical_request(payload)
-        elapsed_ms = (time.time() - t0) * 1000.0
+        elapsed_ms = (time.perf_counter() - t0) * 1000.0
         registry.record_histogram("agent_perf_latency_ms", elapsed_ms)
 
     percentiles = registry.get_percentiles("agent_perf_latency_ms")
@@ -98,11 +98,11 @@ def test_phi_masking_throughput_benchmark():
     )
 
     count = 100
-    t0 = time.time()
+    t0 = time.perf_counter()
     for _ in range(count):
         masked, _ = masker.mask(sample_text)
         assert "444-55-6666" not in masked
-    elapsed = time.time() - t0
+    elapsed = max(time.perf_counter() - t0, 0.0001)
 
     throughput = count / elapsed
     assert throughput > 200.0, f"Masking throughput {throughput:.1f} notes/sec below benchmark (200 notes/sec)"

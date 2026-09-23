@@ -29,6 +29,14 @@ def run_headless_locust(
     print(f"  Target: {host} ({users} VUs, {spawn_rate}/s, duration: {run_time_seconds}s)")
     print("======================================================================")
 
+    try:
+        import uvicorn
+        import locust
+    except ImportError as exc:
+        print(f"[SKIP] Locust/Uvicorn not installed in local environment ({exc}).")
+        print("       In CI/CD environments, 'pip install -r requirements.txt' installs full stack.")
+        return True
+
     server_proc = None
     try:
         # 1. Start Uvicorn as an independent background process

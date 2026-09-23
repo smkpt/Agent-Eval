@@ -1,21 +1,27 @@
 """Async Payer & Pharmacy MCP Gateway simulating HTTP 202 Accepted and event polling."""
 from typing import Dict, Any
 import time
+import uuid
+import threading
 
 class AsyncPayerGatewayMCP:
     """Simulates an asynchronous NCPDP / FHIR Da Vinci PAS Payer Gateway."""
     def __init__(self):
         self._async_transactions: Dict[str, Dict[str, Any]] = {}
+        self._lock = threading.Lock()
+        self._seq = 0
 
     def submit_prior_authorization(self, claim_payload: Dict[str, Any]) -> Dict[str, Any]:
         """Submits an e-Rx prior authorization, returning HTTP 202 Accepted."""
-        tx_id = f"TX-PA-{int(time.time() * 1000)}"
-        self._async_transactions[tx_id] = {
-            "created_at": time.time(),
-            "payload": claim_payload,
-            "check_count": 0,
-            "status": "QUEUED_IN_ADJUDICATION_PIPELINE"
-        }
+        with self._lock:
+            self._seq += 1
+            tx_id = f"TX-PA-{int(time.time() * 1000)}-{self._seq}-{uuid.uuid4().hex[:6]}"
+            self._async_transactions[tx_id] = {
+                "created_at": time.time(),
+                "payload": claim_payload,
+                "check_count": 0,
+                "status": "QUEUED_IN_ADJUDICATION_PIPELINE"
+            }
 
         # Conforms to RFC 7231 HTTP 202 Accepted pattern
         return {
@@ -33,14 +39,16 @@ class AsyncPayerGatewayMCP:
 
     def poll_status(self, transaction_id: str) -> Dict[str, Any]:
         """Simulates asynchronous polling endpoint with step transitions."""
-        if transaction_id not in self._async_transactions:
-            return {"http_status": 404, "error": "Transaction not found"}
+        with self._lock:
+            if transaction_id not in self._async_transactions:
+                return {"http_status": 404, "error": "Transaction not found"}
 
-        record = self._async_transactions[transaction_id]
-        record["check_count"] += 1
+            record = self._async_transactions[transaction_id]
+            record["check_count"] += 1
+            count = record["check_count"]
 
         # Simulate 2-step async processing lifecycle
-        if record["check_count"] == 1:
+        if count == 1:
             return {
                 "http_status": 200,
                 "status": "IN_REVIEW",
@@ -48,7 +56,8 @@ class AsyncPayerGatewayMCP:
                 "decision": None
             }
         else:
-            record["status"] = "ADJUDICATED_APPROVED"
+            with self._lock:
+                record["status"] = "ADJUDICATED_APPROVED"
             return {
                 "http_status": 200,
                 "status": "ADJUDICATED_APPROVED",
