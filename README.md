@@ -10,7 +10,6 @@ A production-grade Proof-of-Concept demonstrating an enterprise **Healthcare AI 
 
 <div align="center">
 
-[![Agent-Eval Operations & Agentic QA Command Center](dashboard_full_view.png)](dashboards/healthcare_ops_qa_dashboard.html)
 
 **[🖥️ Launch Interactive HTML Dashboard](dashboards/healthcare_ops_qa_dashboard.html)** • **[📊 View Full High-Res Architecture Overview](dashboard_full_view.png)**
 
