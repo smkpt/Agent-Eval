@@ -1,0 +1,32 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: k6-agent-eval-loadtest
+  labels:
+    app: k6-loadtest
+    tier: performance
+spec:
+  parallelism: 2
+  completions: 2
+  template:
+    metadata:
+      labels:
+        app: k6-loadtest
+    spec:
+      restartPolicy: Never
+      containers:
+        - name: k6
+          image: grafana/k6:latest
+          command: ["k6", "run", "--out", "experimental-prometheus-rw", "/scripts/k6_load_test.js"]
+          env:
+            - name: TARGET_URL
+              value: "http://healthcare-agent-service:8000"
+            - name: K6_PROMETHEUS_RW_SERVER_URL
+              value: "http://prometheus-server:9090/api/v1/write"
+          volumeMounts:
+            - name: k6-scripts
+              mountPath: /scripts
+      volumes:
+        - name: k6-scripts
+          configMap:
+            name: k6-test-script

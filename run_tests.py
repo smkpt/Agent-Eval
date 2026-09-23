@@ -1,4 +1,4 @@
-"""Universal test runner executing unit tests, guardrails, health probes, and synthetic canaries."""
+"""Universal test runner executing unit tests, guardrails, performance benchmarks, and synthetic canaries."""
 import sys
 import os
 
@@ -44,10 +44,22 @@ from tests.test_alerts import (
 from tests.test_synthetic_canary import (
     test_synthetic_canary_runner_batch
 )
+from tests.test_performance import (
+    test_concurrent_load_throughput,
+    test_latency_percentiles_sla,
+    test_phi_masking_throughput_benchmark,
+    test_stress_under_high_failure_rate
+)
+from tests.test_api_endpoints import (
+    test_api_health_endpoint,
+    test_api_metrics_endpoint,
+    test_api_prescription_endpoint,
+    test_api_canary_run_endpoint
+)
 
 def run_all_tests():
     print("======================================================================")
-    print("  RUNNING HEALTHCARE AGENT, DEEPEVAL, AND OPERATIONS TELEMETRY SUITE")
+    print("  RUNNING HEALTHCARE AGENT, DEEPEVAL, AND PERFORMANCE TEST SUITE")
     print("======================================================================")
     
     passed = 0
@@ -75,7 +87,7 @@ def run_all_tests():
         ("test_clinical_faithfulness_metric", lambda: test_clinical_faithfulness_metric()),
         ("test_async_workflow_sla_metric", lambda: test_async_workflow_sla_metric()),
 
-        # Telemetry, Prometheus & Performance Metrics
+        # Telemetry, Prometheus & Metrics
         ("test_metrics_counter_and_gauge", lambda: test_metrics_counter_and_gauge()),
         ("test_histogram_percentiles", lambda: test_histogram_percentiles()),
         ("test_prometheus_text_export", lambda: test_prometheus_text_export()),
@@ -90,7 +102,19 @@ def run_all_tests():
         ("test_alert_fires_on_latency_breach", lambda: test_alert_fires_on_latency_breach()),
 
         # Synthetic Canary Runner
-        ("test_synthetic_canary_runner_batch", lambda: test_synthetic_canary_runner_batch())
+        ("test_synthetic_canary_runner_batch", lambda: test_synthetic_canary_runner_batch()),
+
+        # Performance, Stress & Throughput Benchmarks
+        ("test_concurrent_load_throughput", lambda: test_concurrent_load_throughput()),
+        ("test_latency_percentiles_sla", lambda: test_latency_percentiles_sla()),
+        ("test_phi_masking_throughput_benchmark", lambda: test_phi_masking_throughput_benchmark()),
+        ("test_stress_under_high_failure_rate", lambda: test_stress_under_high_failure_rate()),
+
+        # API Endpoints (FastAPI)
+        ("test_api_health_endpoint", lambda: test_api_health_endpoint()),
+        ("test_api_metrics_endpoint", lambda: test_api_metrics_endpoint()),
+        ("test_api_prescription_endpoint", lambda: test_api_prescription_endpoint()),
+        ("test_api_canary_run_endpoint", lambda: test_api_canary_run_endpoint())
     ]
 
     for name, fn in tests:
