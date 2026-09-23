@@ -10,8 +10,7 @@ from src.storage.postgres_client import PostgresClient
 from src.storage.db2_client import DB2Client
 from src.saga.saga_coordinator import SagaCoordinator
 
-@fixture_decorator
-def test_environment():
+def create_test_environment():
     mongo = MongoClient()
     postgres = PostgresClient()
     db2 = DB2Client()
@@ -22,6 +21,13 @@ def test_environment():
         "db2": db2,
         "coordinator": coordinator
     }
+
+if fixture_decorator is not None:
+    @fixture_decorator
+    def test_environment():
+        return create_test_environment()
+else:
+    test_environment = create_test_environment
 
 def test_saga_happy_path_commits_all_tiers(test_environment):
     env = test_environment

@@ -14,7 +14,7 @@ from tests.test_data_integrity import (
     test_saga_happy_path_commits_all_tiers,
     test_saga_compensates_on_db2_timeout,
     test_idempotency_prevents_duplicate_race_condition,
-    test_environment
+    create_test_environment
 )
 from tests.test_async_workflow import (
     test_async_gateway_returns_http_202_and_polls,
@@ -72,9 +72,9 @@ def run_all_tests():
         ("test_logger_filter_prevents_leaks", lambda: test_logger_filter_prevents_leaks()),
         
         # Multi-Store Data Integrity (Saga, Mongo, Postgres, DB2)
-        ("test_saga_happy_path_commits_all_tiers", lambda: test_saga_happy_path_commits_all_tiers(test_environment())),
-        ("test_saga_compensates_on_db2_timeout", lambda: test_saga_compensates_on_db2_timeout(test_environment())),
-        ("test_idempotency_prevents_duplicate_race_condition", lambda: test_idempotency_prevents_duplicate_race_condition(test_environment())),
+        ("test_saga_happy_path_commits_all_tiers", lambda: test_saga_happy_path_commits_all_tiers(create_test_environment())),
+        ("test_saga_compensates_on_db2_timeout", lambda: test_saga_compensates_on_db2_timeout(create_test_environment())),
+        ("test_idempotency_prevents_duplicate_race_condition", lambda: test_idempotency_prevents_duplicate_race_condition(create_test_environment())),
         
         # Asynchronous Pharmacy & Prescriber Workflows
         ("test_async_gateway_returns_http_202_and_polls", lambda: test_async_gateway_returns_http_202_and_polls()),
