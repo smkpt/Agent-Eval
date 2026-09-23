@@ -11,6 +11,8 @@ A production-grade Proof-of-Concept demonstrating an enterprise **Healthcare AI 
 ---
 
 ## Operations Visibility & Synthetic Monitoring
+<img width="1871" height="769" alt="image" src="https://github.com/user-attachments/assets/a24260d4-53b6-409b-82a3-07fd05dae493" />
+
 
 ```mermaid
 flowchart TD
